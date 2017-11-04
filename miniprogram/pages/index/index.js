@@ -103,8 +103,7 @@ Page({
       }
     })
 
-    that.buddy = buddy
-    getApp().globalData.buddy = that.buddy
+    app.buddy = buddy
 
     // var newmsg = "Message to userA."
     // var meta = "optional some meta data, like message id"
@@ -114,7 +113,7 @@ Page({
 
   receiveMsg: function (rcvmsg){
     var that = this
-    that.buddy.receiveMsg(rcvmsg)
+    app.buddy.receiveMsg(rcvmsg)
   },
 
   onLoad: function () {

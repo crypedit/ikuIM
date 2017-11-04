@@ -1,8 +1,8 @@
 {
   "pages":[
+    "pages/chatroom/chatroom",
     "pages/index/index",
-    "pages/logs/logs",
-    "pages/chatroom/chatroom"
+    "pages/logs/logs"
   ],
   "window":{
     "backgroundTextStyle":"light",

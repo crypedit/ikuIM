@@ -7,9 +7,7 @@
             </view>
             <view class="main" class="{{ item.style }}">
                 <view class="msg">
-                    <view class="template" wx:for="{{ item.msg.data }}" wx:key="">
-                        <template is="{{ item.type }}" data="{{ item }}"/>
-                    </view>
+                  <template is="{{ item.msg.type }}" data="{{ item }}"/> 
                 </view>
             </view>
         </view>
@@ -20,7 +18,7 @@
                 <input wx:if="{{!showRecordHandler}}" 
                        class="f news" 
                        type="text" 
-                       value="{{ inputMessage }}"
+                       value="{{ inputMessage }}" 
                        placeholder="输入新消息" 
                        placeholder-style="color:#CFCFCF;padding-left:5px;"   
                        bindinput="bindMessage"
@@ -34,3 +32,10 @@
 
 
 
+
+<template name="there">
+  <text style="float: left;margin-top: 2px;">{{ item.msg.data }}</text>
+</template>
+<template name="here">
+  <text style="float: right;margin-top: 2px;">{{ item.msg.data }}</text>
+</template>

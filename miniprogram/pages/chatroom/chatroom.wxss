@@ -143,8 +143,8 @@
   border-radius: 5px;
   font-size: 14px;
   padding-left: 4px;
-  /*display: inline-block;*/
-  /*float: left;*/
+  display: inline-block;
+  float: left;
   margin: 4px 2px 4px 6px;
 }
 
