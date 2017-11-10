@@ -34,8 +34,8 @@
 
 
 <template name="there">
-  <text style="float: left;margin-top: 2px;">{{ item.msg.data }}</text>
+  <text style="float:left;margin-top: 2px;">{{ item.msg.data }}</text>
 </template>
 <template name="here">
-  <text style="float: right;margin-top: 2px;">{{ item.msg.data }}</text>
+  <text style="float:right;margin-top: 2px;">{{ item.msg.data }}</text>
 </template>

@@ -54,20 +54,23 @@
 }
 
 .msg {
-  display: inline-block;
+  /* display: inline-block; */
   position: relative;
-  padding: 5px 10px;
-  max-width: calc(85% - 40px);
   font-size: 12px;
   overflow: hidden;
   text-align: left;
   word-break: break-all;
-  background-color: #EDEDED;
-  border-radius: 4px;
 }
 
 .msg text {
+  display: inline-block;  
   line-height: 1.5;
+  padding: 5px 10px;
+  background-color: #EDEDED;
+  max-width: calc(85% - 40px);  
+  border-radius: 4px;
+  
+  
 }
 
 .msg :before {
