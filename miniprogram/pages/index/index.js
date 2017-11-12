@@ -10,7 +10,7 @@ Page({
     progress: '0',
     userInfo: {},
     buddyInfo: {},
-    shareable: '/pages/index',
+    shareable: '/pages/index/index',
   },
   buddy: null,
   onShareAppMessage: function () {

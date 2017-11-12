@@ -35,6 +35,26 @@ function initAKE(options) {
         case OTR.CONST.STATUS_AKE_SUCCESS:
           // sucessfully ake'd with buddy
           // check if buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED
+            var newmsg = "Message to userA."
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
+            buddy.sendMsg(newmsg, '')
 
           break;
         case OTR.CONST.STATUS_END_OTR:
