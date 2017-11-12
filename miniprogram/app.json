@@ -1,13 +1,13 @@
 {
   "pages":[
-    "pages/chatroom/chatroom",
     "pages/index/index",
+    "pages/chatroom/chatroom",
     "pages/logs/logs"
   ],
   "window":{
     "backgroundTextStyle":"light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "WeChat",
+    "navigationBarTitleText": "即墨",
     "navigationBarTextStyle":"black"
   }
 }

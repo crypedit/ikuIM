@@ -25,7 +25,7 @@ App({
     }
   },
   globalData:{
-    userInfo:null,
-    buddy: null
-  }
+    userInfo:null
+  },
+  buddies: {}
 })

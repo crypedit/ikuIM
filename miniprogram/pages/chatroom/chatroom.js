@@ -1,29 +1,8 @@
 var app = getApp()
 
-var testmsgs = {
-  info: {
-    from: 'me',
-    to: 'you'
-  },
-  username: '',
-  yourname: 'me',
-  msg: {
-    type: 'here',
-    data: 'value',
-    url: '',
-  },
-  style: 'txt',
-  time: 'time',
-  mid: 'msg.type + msg.id'
-}
 Page({
     data: {
-        chatMsg: [
-          testmsgs,
-          testmsgs,
-          testmsgs,
-          testmsgs
-        ],
+        chatMsg: [],
         yourname: '',
         myName: '',
         sendInfo: '',
@@ -35,17 +14,26 @@ Page({
         view: 'scroll_view',
         toView: '',
         msgView: {},
-        buddy: null,
     },
+    buddy: null,
     onLoad: function (options) {
-        var that = this
-        that.buddy = getApp().globalData.buddy
+      var that = this
+      this.buddy = app.buddies['alice']
+    },
+    onReady:  function () {
+      var that = this
+      that.buddy.on('ui', function (msg, encrypted, meta) {
+        console.log("message to display to the user: " + msg)
+        // encrypted === true, if the received msg was encrypted
+        console.log("(optional) with receiveMsg attached meta data: " + meta)
+        that.receiveMsg(msg)
+      })
     },
     onShow: function () {
-        var that = this
-        this.setData({
-            inputMessage: ''
-        })
+      var that = this
+      that.setData({
+          inputMessage: ''
+      })
     },
     bindMessage: function (e) {
       var that = this
@@ -60,39 +48,60 @@ Page({
       })
     },
     sendMessage: function () {
+      var that = this
+      if (!that.data.userMessage.trim()) return
+      that.buddy.sendMsg(that.data.userMessage, null)
 
-      if (!this.data.userMessage.trim()) return;
+      var msgData = {
+        // info: {
+        //   from: 'msg.from',
+        //   to: 'msg.to'
+        // },
+        username: '',
+        yourname: 'msg.from',
+        msg: {
+          type: 'here',
+          data: that.data.userMessage,
+          url: 'msg.url'
+        },
+        style: 'txt',
+        // time: new Date().getTime(),
+        mid: 'msgid-'+that.data.chatMsg.length+1
+      }
+      that.data.chatMsg.push(msgData)
+      that.setData({
+        chatMsg: that.data.chatMsg,
+        toView: msgData.mid
+      })
+    },
 
+    receiveMsg: function (msg) {
         var that = this
-        var msgData = {
-          info: {
-            from: 'msg.from',
-            to: 'msg.to'
-          },
-          username: '',
-          yourname: 'msg.from',
-          msg: {
-            type: 'txt',
-            data: 'value',
-            url: 'msg.url'
-          },
-          style: 'txt',
-          time: 'time',
-          mid: 'msgid-'+that.data.chatMsg.length+1
-        }
-        that.data.chatMsg.push(msgData)
+        
+        // var myName = wx.getStorageSync('myUsername')
+        // if (msg.from == that.data.yourname || msg.to == that.data.yourname) {
+            var msgData = {
+              // info: {
+              //   from: 'msg.from',
+              //   to: 'msg.to'
+              // },
+              username: '',
+              yourname: 'msg.from',
+              msg: {
+                type: 'there',
+                data: msg,
+                // url: 'msg.url'
+              },
+              style: 'txt',
+              // time: new Date().getTime(),
+              mid: 'msgid-' + that.data.chatMsg.length + 1
+            }
+            that.data.chatMsg.push(msgData)
+        // }
         this.setData({
           chatMsg: that.data.chatMsg,
           toView: msgData.mid
         })
-    },
-
-    receiveMsg: function (msg, type) {
-        var that = this
-        var myName = wx.getStorageSync('myUsername')
-        if (msg.from == that.data.yourname || msg.to == that.data.yourname) {
-            that.data.chatMsg.push(msgData)
-        }
     },
     
     quitChatRoom: function(){

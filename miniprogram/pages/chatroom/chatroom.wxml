@@ -2,9 +2,9 @@
     <scroll-view scroll-y="true" class="scroll_view" class="{{ view }}" bindtap="cancelEmoji"
                  scroll-into-view="{{ toView }}">
         <view class="message" wx:for="{{ chatMsg }}" wx:key="" id="{{ item.mid }}">
-            <view class="time">
+            <!-- <view class="time">
                 <text>{{item.time}}</text>
-            </view>
+            </view> -->
             <view class="main" class="{{ item.style }}">
                 <view class="msg">
                   <template is="{{ item.msg.type }}" data="{{ item }}"/> 
@@ -37,5 +37,5 @@
   <text style="float:left;margin-top: 2px;">{{ item.msg.data }}</text>
 </template>
 <template name="here">
-  <text style="float:right;margin-top: 2px;">{{ item.msg.data }}</text>
+  <text style="background-color:#b2e281;float:right;margin-top: 2px;">{{ item.msg.data }}</text>
 </template>

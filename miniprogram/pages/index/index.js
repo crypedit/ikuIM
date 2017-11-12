@@ -9,10 +9,10 @@ Page({
     motto: '正在创建房间...',
     progress: '0',
     userInfo: {},
-    buddy: null,
+    buddyInfo: {},
     shareable: '/pages/index',
   },
-  
+  buddy: null,
   onShareAppMessage: function () {
     return {
       title: '密聊',
@@ -63,6 +63,8 @@ Page({
   initAKE: function (options) {
     var that = this
     var buddy = new OTR(options)
+    this.buddy = buddy
+
     buddy.REQUIRE_ENCRYPTION = true
 
     buddy.on('ui', function (msg, encrypted, meta) {
@@ -75,7 +77,7 @@ Page({
       console.log("message to send to buddy: " + msg)
       console.log("(optional) with sendMsg attached meta data: " + meta)
       wx.sendSocketMessage({
-        data: JSON.stringify({"from":"bob", "msg":msg}),
+        data: JSON.stringify({"from":that.data.userInfo.nickName, "msg":msg}),
         fail: function() {
           console.error("message fail")
         },
@@ -94,6 +96,7 @@ Page({
           // check if buddy.msgstate === OTR.CONST.MSGSTATE_ENCRYPTED
 
           that.updateProgress(100)
+          app.buddies[that.data.buddyInfo.nickName] = buddy
           break
         case OTR.CONST.STATUS_END_OTR:
           // if buddy.msgstate === OTR.CONST.MSGSTATE_FINISHED
@@ -102,9 +105,6 @@ Page({
           break
       }
     })
-
-    app.buddy = buddy
-
     // var newmsg = "Message to userA."
     // var meta = "optional some meta data, like message id"
     // buddy.sendMsg(newmsg, meta)
@@ -113,7 +113,7 @@ Page({
 
   receiveMsg: function (rcvmsg){
     var that = this
-    app.buddy.receiveMsg(rcvmsg)
+    that.buddy.receiveMsg(rcvmsg)
   },
 
   onLoad: function () {
@@ -159,7 +159,8 @@ Page({
         function(e){
           try {
             var data = JSON.parse(e)
-            if (data.from != 'bob') {
+            if (data.from != that.data.userInfo.nickName) {
+              that.setData({buddyInfo:{nickName: data.from}})
               that.receiveMsg(data.msg)
             }
           } catch (exception) {
