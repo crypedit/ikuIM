@@ -13,6 +13,10 @@
 	"projectname": "ikuim",
 	"miniprogramRoot": "./",
 	"condition": {
+		"weapp": {
+			"current": -1,
+			"list": []
+		},
 		"search": {
 			"current": -1,
 			"list": []

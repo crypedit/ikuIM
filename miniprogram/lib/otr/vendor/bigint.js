@@ -1,16 +1,4 @@
-;(function (root, factory) {
-
-  if (typeof define === 'function' && define.amd) {
-    define(factory.bind(root, root.crypto || root.msCrypto))
-  } else if (typeof module !== 'undefined' && module.exports) {
-    module.exports = factory(crypto)
-  } else {
-    root.BigInt = factory(root.crypto || root.msCrypto)
-  }
-
-}(this, function (crypto) {
-
-  ////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////
   // Big Integer Library v. 5.5
   // Created 2000, last modified 2013
   // Leemon Baird
@@ -190,9 +178,7 @@
   //       sentences that seem to imply it's faster to do a non-modular square followed by a single
   //       Montgomery reduction, but that's obviously wrong.
   ////////////////////////////////////////////////////////////////////////////////////////
-
   //globals
-
   // The number of significant bits in the fraction of a JavaScript
   // floating-point number is 52, independent of platform.
   // See: https://github.com/arlolra/otr/issues/41
@@ -1614,36 +1600,28 @@
     return mpi
   }
 
+  var sjcl = require('../../sjcl/sjcl.js')
+  var isaac = require('../../isaac/isaac.js')
+  var randomBytes = function (n) {
+    sjcl.random.removeEventListener('seeded', randomBytes)
+    return Uint8Array.from(sjcl.random.randomWords(n))
+  }
+  // var buf = new Uint8Array(1024 / 8)
+  // crypto.getRandomValues(buf)
+  // buf = new Uint32Array(new Uint8Array(buf).buffer)
+  var randomWords = [];
+  for (var i = 0; i < 1024 / 8 / 4; i++) {
+    randomWords.push(isaac.random());
+  }
+  sjcl.random.addEntropy(randomWords, 1024, "math.Random")
+  sjcl.random.addEventListener('seeded', randomBytes)
+  
   // returns a function that returns an array of n bytes
-  var randomBytes = (function () {
-
-    // in node
-    if ( typeof crypto !== 'undefined' &&
-      typeof crypto.randomBytes === 'function' ) {
-      return function (n) {
-        try {
-          var buf = crypto.randomBytes(n)
-        } catch (e) { throw e }
-        return Array.prototype.slice.call(buf, 0)
-      }
-    }
-
-    // in browser
-    else if ( typeof crypto !== 'undefined' &&
-      typeof crypto.getRandomValues === 'function' ) {
-      return function (n) {
-        var buf = new Uint8Array(n)
-        crypto.getRandomValues(buf)
-        return Array.prototype.slice.call(buf, 0)
-      }
-    }
-
-    // err
-    else {
-      throw new Error('Keys should not be generated without CSPRNG.')
-    }
-
-  }())
+  // function randomBytes(n) {
+  //   var buf = new Uint8Array(n)
+  //   crypto.getRandomValues(buf)
+  //   return Array.prototype.slice.call(buf, 0)
+  // }
 
   // Salsa 20 in webworker needs a 40 byte seed
   function getSeed() {
@@ -1667,7 +1645,7 @@
     return r
   }
 
-  return {
+  module.exports = {
       str2bigInt    : str2bigInt
     , bigInt2str    : bigInt2str
     , int2bigInt    : int2bigInt
@@ -1701,5 +1679,3 @@
     , bigInt2bits   : bigInt2bits
     , ba2bigInt     : ba2bigInt
   }
-
-}))

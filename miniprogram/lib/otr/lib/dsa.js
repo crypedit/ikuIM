@@ -28,7 +28,7 @@
     , TWO = BigInt.str2bigInt('2', 10)
     , KEY_TYPE = '\x00\x00'
 
-  var DEBUG = false
+  var DEBUG = true
   function timer() {
     var start = (new Date()).getTime()
     return function (s) {

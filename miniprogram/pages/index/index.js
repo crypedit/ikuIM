@@ -2,27 +2,29 @@
 //获取应用实例
 var app = getApp()
 var DSA = require('../../lib/otr/lib/dsa.js')
-var OTR = require('../../lib/otr/lib/otr.js')
 
 Page({
   data: {
     motto: '正在创建房间...',
     progress: '0',
     userInfo: {},
+    hasUserInfo: false,
+    canIUse: wx.canIUse('button.open-type.getUserInfo'),
     buddyInfo: {},
     shareable: '/pages/index/index',
+    myKey: null
   },
   buddy: null,
   onShareAppMessage: function () {
     return {
-      title: '密聊',
-      desc: '邀请您加入一对一密聊，点击打开密聊小程序',
+      title: '近默',
+      desc: '邀请您加入一对一密聊，点击打开近默小程序',
       path: this.shareable
     }
   },
 
   //事件处理函数
-  bindViewTap: function() {
+  bindViewTap: function () {
     wx.navigateTo({
       url: '../logs/logs'
     })
@@ -31,37 +33,43 @@ Page({
   updateProgress: function (num) {
     var that = this
     that.setData({
-        progress:num
+      progress: num
     })
-    switch(num){
+    switch (num) {
       case 10: that.setData({
-        motto:'正在创建房间...'
+        motto: '正在创建房间...'
       })
-      break
+        break
       case 20: that.setData({
-        motto:'正在创建秘钥...'
+        motto: '正在连接服务器...'
       })
-      break
+        break
       case 30: that.setData({
-        motto:'正在连接服务器...'
+        motto: '正在创建秘钥...'
       })
-      break
+        break
       case 50: that.setData({
-        motto:'正在等待对方加入...'
+        motto: '正在等待对方加入...'
       })
-      break
+        break
       case 100: that.setData({
         motto: '会话已建立'
       })
-      wx.navigateTo({
-        url: '../chatroom/chatroom'
-      })
-      break
+        wx.navigateTo({
+          url: '../chatroom/chatroom'
+        })
+        break
     }
   },
 
   initAKE: function (options) {
     var that = this
+    console.log('Generating DSA...')
+    that.myKey = new DSA()
+    console.log('Generating DSA done')
+    console.log('DSA generated, fingerprint: ' + that.myKey.fingerprint())
+
+    var OTR = require('../../lib/otr/lib/otr.js')
     var buddy = new OTR(options)
     this.buddy = buddy
 
@@ -77,8 +85,8 @@ Page({
       console.log("message to send to buddy: " + msg)
       console.log("(optional) with sendMsg attached meta data: " + meta)
       wx.sendSocketMessage({
-        data: JSON.stringify({"from":that.data.userInfo.nickName, "msg":msg}),
-        fail: function() {
+        data: JSON.stringify({ "from": that.data.userInfo.nickName, "msg": msg }),
+        fail: function () {
           console.error("message fail")
         },
       })
@@ -111,56 +119,79 @@ Page({
     // that.updateProgress(80)
   },
 
-  receiveMsg: function (rcvmsg){
+  receiveMsg: function (rcvmsg) {
     var that = this
     that.buddy.receiveMsg(rcvmsg)
   },
 
   onLoad: function () {
-    console.log('onLoad')
-    var that = this
-    //调用应用实例的方法获取全局数据
-    app.getUserInfo(function(userInfo){
-      //更新数据
-      that.setData({
-        userInfo:userInfo
+    if (app.globalData.userInfo) {
+      this.setData({
+        userInfo: app.globalData.userInfo,
+        hasUserInfo: true
       })
+    } else if (this.data.canIUse) {
+      // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
+      // 所以此处加入 callback 以防止这种情况
+      app.userInfoReadyCallback = res => {
+        this.setData({
+          userInfo: res.userInfo,
+          hasUserInfo: true
+        })
+      }
+    } else {
+      // 在没有 open-type=getUserInfo 版本的兼容处理
+      wx.getUserInfo({
+        success: res => {
+          app.globalData.userInfo = res.userInfo
+          this.setData({
+            userInfo: res.userInfo,
+            hasUserInfo: true
+          })
+        }
+      })
+    }
+  },
+
+  getUserInfo: function (e) {
+    console.log(e)
+    app.globalData.userInfo = e.detail.userInfo
+    this.setData({
+      userInfo: e.detail.userInfo,
+      hasUserInfo: true
     })
   },
 
   onReady: function () {
     var that = this
-    console.log('Generating DSA...')
-    var myKey = new DSA()
-    console.log('DSA generated, fingerprint: ' + myKey.fingerprint())
-    
     // provide options
 
-    that.updateProgress(30)
     wx.connectSocket({
       url: 'wss://wechat.iku.im/ws'
       // url: 'ws://localhost:8080/ws'
     })
 
-    wx.onSocketOpen(function(res) {
+    wx.onSocketOpen(function (res) {
+      that.updateProgress(30)
+
       console.log('WebSocket connected')
       var options = {
         fragment_size: 140,
         send_interval: 200,
-        priv: myKey
+        priv: that.myKey
       }
       that.initAKE(options)
       that.updateProgress(50)
     })
 
-    wx.onSocketMessage(function(res) {
+    wx.onSocketMessage(function (res) {
       var events = res.data.split('\n');
       events.forEach(
-        function(e){
+        function (e) {
           try {
             var data = JSON.parse(e)
             if (data.from != that.data.userInfo.nickName) {
-              that.setData({buddyInfo:{nickName: data.from}})
+              that.setData({ buddyInfo: { nickName: data.from } })
               that.receiveMsg(data.msg)
             }
           } catch (exception) {
@@ -168,14 +199,12 @@ Page({
           }
         }
       )
-      
+
     })
 
-    wx.onSocketError(function(res){
+    wx.onSocketError(function (res) {
       console.error('WebSocket failed to connect ')
-      wx.closeSocket()      
+      wx.closeSocket()
     })
   }
 })
-
-
