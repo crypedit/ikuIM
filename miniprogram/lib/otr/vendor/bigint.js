@@ -1600,6 +1600,7 @@
     return mpi
   }
 
+  //TODO: here we use sjcl plus isaac as pseudo rng which should be replaced later with a entropy generator
   var sjcl = require('../../sjcl/sjcl.js')
   var isaac = require('../../isaac/isaac.js')
   var randomBytes = function (n) {
