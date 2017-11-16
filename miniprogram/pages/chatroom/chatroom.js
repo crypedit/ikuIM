@@ -18,7 +18,7 @@ Page({
     buddy: null,
     onLoad: function (options) {
       var that = this
-      this.buddy = app.buddies['alice']
+      that.buddy = app.currentBuddy
     },
     onReady:  function () {
       var that = this

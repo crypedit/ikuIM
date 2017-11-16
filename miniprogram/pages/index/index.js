@@ -1,7 +1,8 @@
 //index.js
 //获取应用实例
 var app = getApp()
-var DSA = require('../../lib/otr/lib/dsa.js')
+const DSA = require('../../lib/otr/lib/dsa.js')
+const TextMessage = require('../../lib/leancloud-realtime.js').TextMessage
 
 Page({
   data: {
@@ -12,15 +13,28 @@ Page({
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     buddyInfo: {},
     shareable: '/pages/index/index',
-    myKey: null
+    myKey: null,
   },
   buddy: null,
+  conv: null,
   onShareAppMessage: function () {
+    console.log(this.shareableURL())
     return {
-      title: '近默',
-      desc: '邀请您加入一对一密聊，点击打开近默小程序',
-      path: this.shareable
+      title: this.data.userInfo.nickName + '邀请您加入一对一密聊，点击打开近默小程序',
+      desc: this.data.userInfo.nickName + '邀请您加入一对一密聊，点击打开近默小程序',
+      path: '/pages/index/index' + this.shareableURL()
     }
+  },
+
+  shareableURL: function () {
+    var that = this
+    that.updateProgress(55)
+    return '?' +
+      'buddy=' +
+      encodeURIComponent(that.data.userInfo.nickName) +
+      '&target=' +
+      encodeURIComponent(that.data.userInfo.nickName + '-' + that.data.buddyInfo.nickName) +
+      '&conv=' + encodeURIComponent(that.conv.id)
   },
 
   //事件处理函数
@@ -41,33 +55,51 @@ Page({
       })
         break
       case 20: that.setData({
-        motto: '正在连接服务器...'
-      })
-        break
-      case 30: that.setData({
         motto: '正在创建秘钥...'
       })
         break
-      case 50: that.setData({
-        motto: '正在等待对方加入...'
+      case 30: that.setData({
+        motto: '正在连接服务器...'
       })
         break
-      case 100: that.setData({
-        motto: '会话已建立'
+      case 50: that.setData({
+        motto: '请点右上角分享给你需要私密聊天的微信用户'
       })
+        break
+      case 55: that.setData({
+        motto: '正在等待对方加入... '
+      })
+        break
+      case 60: that.setData({
+    motto: '正在等待对方响应...'
+  })
+        break
+      case 100: that.setData({
+    motto: '会话已建立'
+  })
         wx.navigateTo({
-          url: '../chatroom/chatroom'
-        })
+    url: '../chatroom/chatroom' + '?buddy=' + that.data.buddyInfo.nickName
+  })
         break
     }
   },
 
-  initAKE: function (options) {
+  initAKE: function () {
     var that = this
-    console.log('Generating DSA...')
-    that.myKey = new DSA()
-    console.log('Generating DSA done')
-    console.log('DSA generated, fingerprint: ' + that.myKey.fingerprint())
+    var options = {
+      fragment_size: 140,
+      send_interval: 200,
+      priv: that.myKey
+    }
+    that.myKey = wx.getStorageSync('myKey')
+    if (that.myKey) {
+      console.log('Using stored DSA')
+    } else {
+      console.log('Generating DSA...')
+      that.myKey = new DSA()
+      console.log('Generating DSA done')
+      wx.setStorageSync('myKey', that.myKey)
+    }
 
     var OTR = require('../../lib/otr/lib/otr.js')
     var buddy = new OTR(options)
@@ -84,12 +116,7 @@ Page({
     buddy.on('io', function (msg, meta) {
       console.log("message to send to buddy: " + msg)
       console.log("(optional) with sendMsg attached meta data: " + meta)
-      wx.sendSocketMessage({
-        data: JSON.stringify({ "from": that.data.userInfo.nickName, "msg": msg }),
-        fail: function () {
-          console.error("message fail")
-        },
-      })
+      that.conv.send(new TextMessage(msg))
     })
 
     buddy.on('error', function (err, severity) {
@@ -105,6 +132,7 @@ Page({
 
           that.updateProgress(100)
           app.buddies[that.data.buddyInfo.nickName] = buddy
+          app.currentBuddy = buddy
           break
         case OTR.CONST.STATUS_END_OTR:
           // if buddy.msgstate === OTR.CONST.MSGSTATE_FINISHED
@@ -113,10 +141,6 @@ Page({
           break
       }
     })
-    // var newmsg = "Message to userA."
-    // var meta = "optional some meta data, like message id"
-    // buddy.sendMsg(newmsg, meta)
-    // that.updateProgress(80)
   },
 
   receiveMsg: function (rcvmsg) {
@@ -124,17 +148,28 @@ Page({
     that.buddy.receiveMsg(rcvmsg)
   },
 
-  onLoad: function () {
+  onLoad: function (options) {
+    this.getUserInfo()
+    if (options.buddy) {
+      console.log(options.buddy, options.target, options.conv)
+      this.joinConversation(options.buddy, options.target, options.conv)
+    } else {
+      this.initConversation()
+    }
+  },
+
+  getUserInfo: function () {
+    var that = this
     if (app.globalData.userInfo) {
-      this.setData({
+      that.setData({
         userInfo: app.globalData.userInfo,
         hasUserInfo: true
       })
-    } else if (this.data.canIUse) {
+    } else if (that.data.canIUse) {
       // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
       // 所以此处加入 callback 以防止这种情况
       app.userInfoReadyCallback = res => {
-        this.setData({
+        that.setData({
           userInfo: res.userInfo,
           hasUserInfo: true
         })
@@ -144,7 +179,7 @@ Page({
       wx.getUserInfo({
         success: res => {
           app.globalData.userInfo = res.userInfo
-          this.setData({
+          that.setData({
             userInfo: res.userInfo,
             hasUserInfo: true
           })
@@ -153,58 +188,55 @@ Page({
     }
   },
 
-  getUserInfo: function (e) {
-    console.log(e)
-    app.globalData.userInfo = e.detail.userInfo
-    this.setData({
-      userInfo: e.detail.userInfo,
-      hasUserInfo: true
+  joinConversation: function (buddy, target, conv) {
+    var that = this
+    that.updateProgress(20)
+    that.initAKE()
+    that.updateProgress(30)
+    that.setData({
+      buddyInfo: { nickName: buddy },
     })
+    app.leancloudRealtime.createIMClient(target).then(function (me) {
+
+      return me.getConversation(conv);
+    }).then(function (conversation) {
+      conversation.on('message', function (message, conversation) {
+        console.log(message.text)
+        that.receiveMsg(message.text)
+      });
+      return conversation.join();
+    }).then(function (conversation) {
+      console.log('加入成功', conversation.members);
+      conversation.send(new TextMessage('?OTRv23?'))
+      that.conv = conversation
+      that.updateProgress(60)
+
+    }).catch(console.error);
+
   },
 
-  onReady: function () {
+  initConversation: function () {
     var that = this
-    // provide options
-
-    wx.connectSocket({
-      url: 'wss://wechat.iku.im/ws'
-      // url: 'ws://localhost:8080/ws'
+    that.updateProgress(20)
+    that.initAKE()
+    that.updateProgress(30)
+    that.setData({
+      buddyInfo: { nickName: String(Math.floor(1000 + Math.random() * 9000)) },
     })
-
-    wx.onSocketOpen(function (res) {
-      that.updateProgress(30)
-
-      console.log('WebSocket connected')
-      var options = {
-        fragment_size: 140,
-        send_interval: 200,
-        priv: that.myKey
-      }
-      that.initAKE(options)
+    app.leancloudRealtime.createIMClient(that.data.userInfo.nickName).then(function (me) {
+      return me.createConversation({
+        members: [encodeURIComponent(that.data.userInfo.nickName + '-' + that.data.buddyInfo.nickName)],
+        name: 'Anonymous',
+        unique: true,
+      });
+    }).then(function (conversation) {
+      that.conv = conversation
+      conversation.on('message', function (message, conversation) {
+        that.receiveMsg(message.text)
+      });
+      console.log(that.shareableURL())
+    }).then(function () {
       that.updateProgress(50)
-    })
-
-    wx.onSocketMessage(function (res) {
-      var events = res.data.split('\n');
-      events.forEach(
-        function (e) {
-          try {
-            var data = JSON.parse(e)
-            if (data.from != that.data.userInfo.nickName) {
-              that.setData({ buddyInfo: { nickName: data.from } })
-              that.receiveMsg(data.msg)
-            }
-          } catch (exception) {
-            console.error(res.data)
-          }
-        }
-      )
-
-    })
-
-    wx.onSocketError(function (res) {
-      console.error('WebSocket failed to connect ')
-      wx.closeSocket()
-    })
+    }).catch(console.error);
   }
 })

@@ -32,9 +32,30 @@ App({
         }
       }
     })
+    const AV = require('./lib/leancloud-storage.js')
+    const Realtime = require('./lib/leancloud-realtime.js').Realtime
+    const TypedMessagesPlugin = require('./lib/typed-messages.js').TypedMessagesPlugin;
+    const ImageMessage = require('./lib/typed-messages.js').ImageMessage;
+    AV.init({
+      appId: 'Ubyw1bMwIavP5EvIgeNDKLYc-gzGzoHsz',
+      appKey: 'djU0K4GlssOiUjwlXYocg9Gy',
+    });
+    this.AV = AV
+
+    // 初始化实时通讯 SDK
+    const realtime = new Realtime({
+      appId: 'Ubyw1bMwIavP5EvIgeNDKLYc-gzGzoHsz',
+      appKey: 'djU0K4GlssOiUjwlXYocg9Gy',
+      plugins: [TypedMessagesPlugin], // 注册富媒体消息插件
+    });
+    this.leancloudRealtime = realtime
   },
   globalData: {
     userInfo: null
   },
   buddies: [],
+  currentBuddy: null,
+  leancloudRealtime: null,
+  AV: null,
 })
+

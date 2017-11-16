@@ -13,10 +13,6 @@
 	"projectname": "ikuim",
 	"miniprogramRoot": "./",
 	"condition": {
-		"weapp": {
-			"current": -1,
-			"list": []
-		},
 		"search": {
 			"current": -1,
 			"list": []
@@ -26,8 +22,15 @@
 			"list": []
 		},
 		"miniprogram": {
-			"current": -1,
-			"list": []
+			"current": 0,
+			"list": [
+				{
+					"id": 0,
+					"name": "buddy",
+					"pathName": "pages/index/index",
+					"query": "buddy=Fabulous%20J&target=Fabulous%20J-5635&conv=5a0d5d8d5b90c830ff7ab4b2"
+				}
+			]
 		}
 	}
 }
